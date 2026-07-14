@@ -1,3 +1,48 @@
 spring:
   application:
     name: JobPortal
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/jobportaldb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin}
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:testId}
+            client-secret: ${GOOGLE_CLIENT_SECRET:testSecret}
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME:username}
+    password: ${EMAIL_PASSWORD:password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+server:
+  servlet:
+    context-path: /api/v1
+
+jwt:
+  secretKey: ${JWT_SECRET_KEY:LLe+pqsPF7bxw2EHRl7cnDLwOiOpCORVeUHBHdvJ6t4=}
+deploy:
+  env: development
