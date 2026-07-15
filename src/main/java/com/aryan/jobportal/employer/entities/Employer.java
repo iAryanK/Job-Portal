@@ -68,7 +68,7 @@ public class Employer extends Base {
     @Enumerated(EnumType.STRING)
     private VerificationStatus verificationStatus;
 
-    @ManyToOne
-    @JoinColumn(name = "app_user_id")
+    @OneToOne
+    @JoinColumn(name = "app_user_id", unique = true, nullable = false)
     private AppUser appUser;
 }
