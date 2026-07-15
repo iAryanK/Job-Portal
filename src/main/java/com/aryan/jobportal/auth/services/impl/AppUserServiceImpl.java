@@ -8,6 +8,7 @@ import com.aryan.jobportal.auth.repositories.AppUserRepository;
 import com.aryan.jobportal.auth.security.JwtService;
 import com.aryan.jobportal.auth.services.AppUserService;
 import com.aryan.jobportal.common.dto.MailReq;
+import com.aryan.jobportal.common.enums.AppUserRole;
 import com.aryan.jobportal.common.services.MailService;
 import com.aryan.jobportal.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,9 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
     @Override
     public AuthResp authenticateViaEmail(EmailAuthReq emailAuthReq) {
+        if (AppUserRole.ADMIN.equals(emailAuthReq.getRole()))
+            throw new IllegalArgumentException("Invalid role");
+
         Cache cache = cacheManager.getCache(CACHE_NAME);
         assert cache != null;
 
@@ -71,22 +75,68 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
         AppUser user = appUserRepository.findByEmail(emailAuthReq.getEmail())
                 .orElseGet(() -> {
-                    AppUser newUser = new AppUser();
-                    newUser.setEmail(emailAuthReq.getEmail());
-                    newUser.setRole(emailAuthReq.getRole());
-                    newUser.setName(null);
-                    newUser.setProfilePhoto(null);
+                    AppUser newUser = AppUser.builder()
+                            .name(null)
+                            .email(emailAuthReq.getEmail())
+                            .profilePhoto(null)
+                            .role(emailAuthReq.getRole())
+                            .isEmailVerified(true)
+                            .build();
 
                     return appUserRepository.save(newUser);
                 });
+        return issueTokens(user);
+    }
+
+    @Override
+    public AuthResp authenticateViaGoogle(String email, String name, String profilePhoto) {
+        AppUser user = appUserRepository.findByEmail(email)
+                .map(existing -> updateGoogleProfile(existing, name, profilePhoto))
+                .orElseGet(() -> {
+                    AppUser newUser = AppUser.builder()
+                            .name(name)
+                            .email(email)
+                            .profilePhoto(profilePhoto)
+                            .role(AppUserRole.USER)
+                            .isEmailVerified(true)
+                            .build();
+
+                    return appUserRepository.save(newUser);
+                });
+
+        return issueTokens(user);
+    }
+
+    private AppUser updateGoogleProfile(AppUser user, String name, String profilePhoto) {
+        boolean updated = false;
+        if (user.getName() == null && name != null) {
+            user.setName(name);
+            updated = true;
+        }
+        if (user.getProfilePhoto() == null && profilePhoto != null) {
+            user.setProfilePhoto(profilePhoto);
+            updated = true;
+        }
+        if (!user.isEmailVerified()) {
+            user.setEmailVerified(true);
+            updated = true;
+        }
+        return updated ? appUserRepository.save(user) : user;
+    }
+
+    private AuthResp issueTokens(AppUser user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
-
         return new AuthResp(accessToken, refreshToken);
     }
 
     public AppUser getUserById(UUID userId) {
         return appUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")) ;
+    }
+
+    public AppUser findUserByEmail(String email) {
+        return appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found")) ;
     }
 

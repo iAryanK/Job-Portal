@@ -1,9 +1,11 @@
 package com.aryan.jobportal.auth.controllers;
 
 import com.aryan.jobportal.auth.dto.request.EmailAuthReq;
+import com.aryan.jobportal.auth.dto.request.GoogleAuthReq;
 import com.aryan.jobportal.auth.dto.request.OtpReq;
 import com.aryan.jobportal.auth.dto.response.AuthResp;
 import com.aryan.jobportal.auth.services.AppUserService;
+import com.aryan.jobportal.common.enums.AppUserRole;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 @RestController
@@ -33,11 +36,16 @@ public class AppUserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/authenticate-via-email")
+    @PostMapping("/email")
     public ResponseEntity<AuthResp> authenticateViaEmail(@Valid @RequestBody EmailAuthReq emailAuthReq, HttpServletResponse response) {
         AuthResp authResp = appUserService.authenticateViaEmail(emailAuthReq);
         addRefreshTokenCookie(response, authResp.getRefreshToken());
         return ResponseEntity.status(HttpStatus.CREATED).body(authResp);
+    }
+
+    @GetMapping("/google")
+    public void authenticateViaGoogle(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.sendRedirect(request.getContextPath() + "/oauth2/authorization/google");
     }
 
     @GetMapping("/refresh")

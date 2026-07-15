@@ -20,8 +20,9 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:testId}
-            client-secret: ${GOOGLE_CLIENT_SECRET:testSecret}
+            client-id: ${GOOGLE_CLIENT_ID:889244422854-fm71go8avd9krvl7l0fcusas2tamer9q.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
   mail:
     host: smtp.gmail.com
@@ -46,3 +47,10 @@ jwt:
   secretKey: ${JWT_SECRET_KEY:LLe+pqsPF7bxw2EHRl7cnDLwOiOpCORVeUHBHdvJ6t4=}
 deploy:
   env: development
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG

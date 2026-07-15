@@ -1,7 +1,6 @@
 package com.aryan.jobportal.common.audit;
 
 import com.aryan.jobportal.auth.entities.AppUser;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,8 +25,12 @@ public class AuditAwareImpl implements AuditorAware<UUID> {
             return Optional.empty();
         }
 
-        AppUser user = (AppUser) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
 
-        return Optional.of(user.getId());
+        if (principal instanceof AppUser user) {
+            return Optional.of(user.getId());
+        }
+
+        return Optional.empty();
     }
 }
