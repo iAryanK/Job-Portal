@@ -60,8 +60,8 @@ public class EmployerServiceImpl implements EmployerService {
 
         updateEmployerMapper.update(patchEmployerReq, employer);
 
-        Employer saved = employerRepository.save(employer);
+        employer = employerRepository.save(employer);
 
-        return modelMapper.map(saved, EmployerResp.class);
+        return modelMapper.map(employer, EmployerResp.class);
     }
 }
