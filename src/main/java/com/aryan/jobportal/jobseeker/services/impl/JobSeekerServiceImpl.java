@@ -1,6 +1,7 @@
 package com.aryan.jobportal.jobseeker.services.impl;
 
 import com.aryan.jobportal.auth.entities.AppUser;
+import com.aryan.jobportal.common.enums.AppUserRole;
 import com.aryan.jobportal.common.exceptions.ResourceNotFoundException;
 import com.aryan.jobportal.jobseeker.dto.request.CreateJobSeekerReq;
 import com.aryan.jobportal.jobseeker.dto.request.PatchJobSeekerReq;
@@ -9,6 +10,7 @@ import com.aryan.jobportal.jobseeker.entities.JobSeeker;
 import com.aryan.jobportal.jobseeker.mapper.UpdateJobSeekerMapper;
 import com.aryan.jobportal.jobseeker.repositories.JobSeekerRepository;
 import com.aryan.jobportal.jobseeker.services.JobSeekerService;
+import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -24,8 +26,8 @@ import java.util.UUID;
 public class JobSeekerServiceImpl implements JobSeekerService {
 
     private final JobSeekerRepository jobSeekerRepository;
-    private final ModelMapper modelMapper;
     private final UpdateJobSeekerMapper updateJobSeekerMapper;
+    private final ModelMapper modelMapper;
 
     @Override
     public JobSeekerResp findJobSeekerById(UUID id) {
@@ -38,6 +40,12 @@ public class JobSeekerServiceImpl implements JobSeekerService {
     @Override
     public JobSeekerResp createJobSeeker(CreateJobSeekerReq createJobSeekerReq) {
         AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!AppUserRole.JOBSEEKER.equals(appUser.getRole()))
+            throw new AccessDeniedException("Invalid request");
+        if (jobSeekerRepository.existsById(appUser.getId())) {
+            throw new DuplicateRequestException("Profile already exists");
+        }
+
         JobSeeker jobSeeker = modelMapper.map(createJobSeekerReq, JobSeeker.class);
 
         jobSeeker.setAppUser(appUser);

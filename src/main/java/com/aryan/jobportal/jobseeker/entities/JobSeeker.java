@@ -2,16 +2,14 @@ package com.aryan.jobportal.jobseeker.entities;
 
 import com.aryan.jobportal.auth.entities.AppUser;
 import com.aryan.jobportal.common.entities.Base;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -19,6 +17,14 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JobSeeker extends Base {
+
+    @Id
+    private UUID id;
+
+    @MapsId
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id", unique = true, nullable = false)
+    private AppUser appUser;
 
     @Column(nullable = false)
     private String name;
@@ -83,8 +89,4 @@ public class JobSeeker extends Base {
     private String resumeUrl;
 
     private String portfolioUrl;
-
-    @OneToOne
-    @JoinColumn(name = "app_user_id", unique = true, nullable = false)
-    private AppUser appUser;
 }

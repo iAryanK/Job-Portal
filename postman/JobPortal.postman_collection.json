@@ -1,0 +1,641 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "JobPortal API",
+		"description": "Postman collection for JobPortal REST APIs.\n\n**Setup**\n1. Set `baseUrl` (default: `http://localhost:8080/api/v1`).\n2. Call Auth → Send Email OTP, then Authenticate Via Email.\n3. `accessToken` is saved automatically from auth responses.\n4. Fill ID variables (`jobId`, `jobSeekerId`, etc.) from create/get responses as needed.\n\nAuth endpoints are public; all other endpoints require `Authorization: Bearer {{accessToken}}`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": "user@example.com",
+			"type": "string"
+		},
+		{
+			"key": "otp",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "role",
+			"value": "JOBSEEKER",
+			"type": "string"
+		},
+		{
+			"key": "jobId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "jobSeekerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "employerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "applicationId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "invitationId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"description": "Public authentication endpoints. No bearer token required.",
+			"item": [
+				{
+					"name": "Send Email OTP",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/core/send-email-otp",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "core", "send-email-otp"]
+						},
+						"description": "Sends an OTP to the given email. Returns 204 No Content."
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate Via Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const json = pm.response.json();",
+									"    const data = json.data || json;",
+									"    if (data.accessToken) {",
+									"        pm.collectionVariables.set('accessToken', data.accessToken);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\",\n  \"role\": \"{{role}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/core/email",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "core", "email"]
+						},
+						"description": "Authenticates with email OTP.\n\n`role` values: `ADMIN` | `JOBSEEKER` | `EMPLOYER` | `USER`\n\nSets `refreshToken` cookie and saves `accessToken` to collection variables."
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate Via Google",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/core/google",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "core", "google"]
+						},
+						"description": "Redirects to Google OAuth2 authorization. Prefer opening this URL in a browser."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const json = pm.response.json();",
+									"    const data = json.data || json;",
+									"    if (data.accessToken) {",
+									"        pm.collectionVariables.set('accessToken', data.accessToken);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/core/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "core", "refresh"]
+						},
+						"description": "Refreshes access token using the `refreshToken` HttpOnly cookie from a prior login. Cookie is managed automatically by Postman if cookies are enabled."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Job Seeker",
+			"item": [
+				{
+					"name": "Get Job Seeker By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobseeker/core/{{jobSeekerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobseeker", "core", "{{jobSeekerId}}"]
+						},
+						"description": "Fetch a job seeker profile by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Job Seeker",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const json = pm.response.json();",
+									"    const data = json.data || json;",
+									"    if (data.id) {",
+									"        pm.collectionVariables.set('jobSeekerId', data.id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Jane Doe\",\n  \"dateOfBirth\": \"1998-05-15T00:00:00Z\",\n  \"gender\": \"FEMALE\",\n  \"headline\": \"Backend Engineer\",\n  \"summary\": \"Java and Spring Boot developer\",\n  \"highestQualification\": \"B.Tech\",\n  \"specialization\": \"Computer Science\",\n  \"instituteName\": \"Example University\",\n  \"passingYear\": 2020,\n  \"cgpa\": 8.5,\n  \"experienceYears\": 3,\n  \"experienceMonths\": 6,\n  \"currentCompany\": \"Acme Corp\",\n  \"currentDesignation\": \"Software Engineer\",\n  \"currentCTC\": \"12 LPA\",\n  \"expectedCTC\": \"18 LPA\",\n  \"currentlyWorking\": true,\n  \"willingToRelocate\": true,\n  \"openToRemote\": true,\n  \"preferredJobLocation\": \"Bengaluru\",\n  \"currentAddressLine1\": \"123 Main Street\",\n  \"currentAddressLine2\": \"Apt 4B\",\n  \"city\": \"Bengaluru\",\n  \"district\": \"Bengaluru Urban\",\n  \"state\": \"Karnataka\",\n  \"country\": \"India\",\n  \"pinCode\": \"560001\",\n  \"latitude\": \"12.9716\",\n  \"longitude\": \"77.5946\",\n  \"resumeUrl\": \"https://example.com/resume.pdf\",\n  \"portfolioUrl\": \"https://example.com/portfolio\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobseeker/core",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobseeker", "core"]
+						},
+						"description": "Create a job seeker profile for the authenticated user. Saves `jobSeekerId` on success."
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Job Seeker By ID",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"headline\": \"Senior Backend Engineer\",\n  \"summary\": \"Experienced Java and Spring Boot developer\",\n  \"expectedCTC\": \"22 LPA\",\n  \"openToRemote\": true,\n  \"preferredJobLocation\": \"Bengaluru\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobseeker/core/{{jobSeekerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobseeker", "core", "{{jobSeekerId}}"]
+						},
+						"description": "Partially update a job seeker profile. Send only fields to update."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Employer",
+			"item": [
+				{
+					"name": "Get Employer By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/employer/core/{{employerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["employer", "core", "{{employerId}}"]
+						},
+						"description": "Fetch an employer profile by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Employer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const json = pm.response.json();",
+									"    const data = json.data || json;",
+									"    if (data.id) {",
+									"        pm.collectionVariables.set('employerId', data.id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"companyName\": \"Acme Technologies\",\n  \"gstNumber\": \"29AAAAA0000A1Z5\",\n  \"cinNumber\": \"U72900KA2020PTC123456\",\n  \"industry\": \"Information Technology\",\n  \"companySize\": \"51-200\",\n  \"establishedYear\": 2015,\n  \"website\": \"https://acme.example.com\",\n  \"email\": \"hr@acme.example.com\",\n  \"phone\": \"+919876543210\",\n  \"tagline\": \"Building the future\",\n  \"description\": \"Product engineering company\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"coverImageUrl\": \"https://example.com/cover.png\",\n  \"addressLine1\": \"100 Tech Park\",\n  \"addressLine2\": \"Block A\",\n  \"city\": \"Bengaluru\",\n  \"district\": \"Bengaluru Urban\",\n  \"state\": \"Karnataka\",\n  \"country\": \"India\",\n  \"pinCode\": \"560001\",\n  \"latitude\": 12.9716,\n  \"longitude\": 77.5946\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/employer/core",
+							"host": ["{{baseUrl}}"],
+							"path": ["employer", "core"]
+						},
+						"description": "Create an employer profile for the authenticated user. Saves `employerId` on success."
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Employer By ID",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tagline\": \"Hiring great engineers\",\n  \"description\": \"Updated company description\",\n  \"website\": \"https://acme.example.com\",\n  \"phone\": \"+919876543210\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/employer/core/{{employerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["employer", "core", "{{employerId}}"]
+						},
+						"description": "Partially update an employer profile. Send only fields to update."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Create Job",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const json = pm.response.json();",
+									"    const data = json.data || json;",
+									"    if (data.id) {",
+									"        pm.collectionVariables.set('jobId', data.id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Senior Java Developer\",\n  \"description\": \"Build and maintain backend services\",\n  \"responsibilities\": \"Design APIs, write tests, mentor juniors\",\n  \"requirements\": \"3+ years Java, Spring Boot, PostgreSQL\",\n  \"benefits\": \"Health insurance, remote stipend\",\n  \"employmentType\": \"FULL_TIME\",\n  \"workplaceType\": \"HYBRID\",\n  \"experienceLevel\": \"SENIOR\",\n  \"status\": \"PUBLISHED\",\n  \"vacancies\": 2,\n  \"minimumExperience\": 3,\n  \"maximumExperience\": 7,\n  \"minimumSalary\": 1200000,\n  \"maximumSalary\": 2000000,\n  \"salaryNegotiable\": true,\n  \"currency\": \"INR\",\n  \"city\": \"Bengaluru\",\n  \"district\": \"Bengaluru Urban\",\n  \"state\": \"Karnataka\",\n  \"country\": \"India\",\n  \"pinCode\": \"560001\",\n  \"latitude\": 12.9716,\n  \"longitude\": 77.5946,\n  \"relocationAvailable\": true,\n  \"accommodationProvided\": false,\n  \"transportationProvided\": false,\n  \"foodProvided\": false,\n  \"applicationDeadline\": \"2026-12-31T23:59:59Z\",\n  \"expiresAt\": \"2027-01-31T23:59:59Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs/core",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "core"]
+						},
+						"description": "Create a job posting (EMPLOYER role).\n\nEnums:\n- employmentType: `FULL_TIME` | `PART_TIME` | `CONTRACT` | `TEMPORARY` | `INTERN` | `FREELANCE` | `APPRENTICESHIP`\n- workplaceType: `ON_SITE` | `HYBRID` | `REMOTE`\n- experienceLevel: `FRESHER` | `ENTRY_LEVEL` | `MID_LEVEL` | `SENIOR` | `LEAD` | `MANAGER`\n- status: `DRAFT` | `PUBLISHED` | `PAUSED` | `CLOSED` | `EXPIRED`\n- currency: `USD` | `INR`\n\nSaves `jobId` on success."
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Job By ID",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Senior Java Developer (Updated)\",\n  \"status\": \"PUBLISHED\",\n  \"vacancies\": 3,\n  \"minimumSalary\": 1400000,\n  \"maximumSalary\": 2200000,\n  \"salaryNegotiable\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs/core/{{jobId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "core", "{{jobId}}"]
+						},
+						"description": "Partially update a job. Returns 204 No Content."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs/core/{{jobId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "core", "{{jobId}}"]
+						},
+						"description": "Fetch full job details by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "List Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs/core",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "core"]
+						},
+						"description": "List job summaries."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Get Applications Of Job",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/jobs/application/{{jobId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "application", "{{jobId}}"]
+						},
+						"description": "List applications for a job (employer of that job)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications Of Job Seeker",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs/application/jobseeker/{{jobSeekerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "application", "jobseeker", "{{jobSeekerId}}"]
+						},
+						"description": "List applications submitted by a job seeker."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const json = pm.response.json();",
+									"    const data = json.data || json;",
+									"    if (data.id) {",
+									"        pm.collectionVariables.set('applicationId', data.id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"job\": {\n    \"id\": \"{{jobId}}\"\n  },\n  \"message\": \"I am excited to apply for this role.\",\n  \"jobSeeker\": {\n    \"id\": \"{{jobSeekerId}}\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs/application",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "application"]
+						},
+						"description": "Apply to a job (JOBSEEKER role). Saves `applicationId` on success."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Application Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newStatus\": \"SHORTLISTED\",\n  \"remarks\": \"Strong profile, schedule interview\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs/application/{{applicationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "application", "{{applicationId}}"]
+						},
+						"description": "Update application status (employer of the job).\n\n`newStatus`: `APPLIED` | `SHORTLISTED` | `SELECTED` | `REJECTED`\n\nReturns 204 No Content."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Invitations",
+			"item": [
+				{
+					"name": "Invite Job Seeker",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const json = pm.response.json();",
+									"    const data = json.data || json;",
+									"    if (data.id) {",
+									"        pm.collectionVariables.set('invitationId', data.id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"job\": {\n    \"id\": \"{{jobId}}\",\n    \"employer\": {\n      \"id\": \"{{employerId}}\"\n    }\n  },\n  \"jobSeeker\": {\n    \"id\": \"{{jobSeekerId}}\"\n  },\n  \"status\": \"PENDING\",\n  \"expiresAt\": \"2026-12-31T23:59:59Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs/invitation",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "invitation"]
+						},
+						"description": "Invite a job seeker to a job (employer). Saves `invitationId` on success.\n\n`status`: `PENDING` | `ACCEPTED` | `REJECTED`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Invitations Of Job Seeker",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs/invitation",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "invitation"]
+						},
+						"description": "List invitations for the authenticated job seeker."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Invitation Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs/invitation/{{invitationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", "invitation", "{{invitationId}}"]
+						},
+						"description": "Accept or reject an invitation (JOBSEEKER role).\n\n`status`: `PENDING` | `ACCEPTED` | `REJECTED`\n\nReturns 204 No Content."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

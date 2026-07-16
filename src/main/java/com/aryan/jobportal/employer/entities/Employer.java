@@ -6,6 +6,8 @@ import com.aryan.jobportal.common.enums.VerificationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @Setter
@@ -13,6 +15,14 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Employer extends Base {
+
+    @Id
+    private UUID id;
+
+    @MapsId
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id", unique = true, nullable = false)
+    private AppUser appUser;
 
     @Column(nullable = false)
     private String companyName;
@@ -67,8 +77,4 @@ public class Employer extends Base {
 
     @Enumerated(EnumType.STRING)
     private VerificationStatus verificationStatus;
-
-    @OneToOne
-    @JoinColumn(name = "app_user_id", unique = true, nullable = false)
-    private AppUser appUser;
 }

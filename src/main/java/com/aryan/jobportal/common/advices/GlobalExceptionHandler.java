@@ -2,7 +2,9 @@ package com.aryan.jobportal.common.advices;
 
 import com.aryan.jobportal.common.exceptions.ResourceNotFoundException;
 import com.aryan.jobportal.common.exceptions.UnauthorizedException;
+import com.sun.jdi.request.DuplicateRequestException;
 import io.jsonwebtoken.JwtException;
+import org.apache.coyote.BadRequestException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -108,6 +110,17 @@ public class GlobalExceptionHandler {
         ApiError apiError = ApiError
                 .builder()
                 .status(HttpStatus.FORBIDDEN)
+                .message(exception.getLocalizedMessage())
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(DuplicateRequestException.class)
+    public ResponseEntity<ApiResponse<?>> handleAccessDeniedException(DuplicateRequestException exception) {
+        ApiError apiError = ApiError
+                .builder()
+                .status(HttpStatus.CONFLICT)
                 .message(exception.getLocalizedMessage())
                 .build();
 

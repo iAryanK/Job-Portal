@@ -13,10 +13,8 @@ public class EmployerResp {
 
     private String companyName;
 
-    @Column(unique = true)
     private String gstNumber;
 
-    @Column(unique = true)
     private String cinNumber;
 
     private String industry;

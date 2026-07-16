@@ -24,10 +24,6 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 public class Base {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
     @CreatedDate
     @Column(updatable = false)
     private Instant createdAt;

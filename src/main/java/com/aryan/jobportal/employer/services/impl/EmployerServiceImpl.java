@@ -1,6 +1,7 @@
 package com.aryan.jobportal.employer.services.impl;
 
 import com.aryan.jobportal.auth.entities.AppUser;
+import com.aryan.jobportal.common.enums.AppUserRole;
 import com.aryan.jobportal.common.exceptions.ResourceNotFoundException;
 import com.aryan.jobportal.employer.dto.request.CreateEmployerReq;
 import com.aryan.jobportal.employer.dto.request.PatchEmployerReq;
@@ -9,6 +10,7 @@ import com.aryan.jobportal.employer.entities.Employer;
 import com.aryan.jobportal.employer.mapper.UpdateEmployerMapper;
 import com.aryan.jobportal.employer.repositories.EmployerRepository;
 import com.aryan.jobportal.employer.services.EmployerService;
+import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +41,16 @@ public class EmployerServiceImpl implements EmployerService {
     @Override
     public EmployerResp createEmployer(CreateEmployerReq createEmployerReq) {
         AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!AppUserRole.EMPLOYER.equals(appUser.getRole()))
+            throw new AccessDeniedException("Invalid request");
+        if (employerRepository.existsById(appUser.getId()))
+            throw new DuplicateRequestException("Profile already exists");
+
         Employer employer = modelMapper.map(createEmployerReq, Employer.class);
+
+        boolean employerAlreadyExists = employerRepository.existsByEmail(createEmployerReq.getEmail());
+        if (employerAlreadyExists)
+            throw new DuplicateRequestException("User already exists");
 
         employer.setAppUser(appUser);
         employerRepository.save(employer);
