@@ -67,7 +67,6 @@ public class JobSeekerServiceImpl implements JobSeekerService {
         updateJobSeekerMapper.update(patchjobSeekerReq, jobSeeker);
 
         jobSeeker = jobSeekerRepository.save(jobSeeker);
-
         return modelMapper.map(jobSeeker, JobSeekerResp.class);
     }
 }

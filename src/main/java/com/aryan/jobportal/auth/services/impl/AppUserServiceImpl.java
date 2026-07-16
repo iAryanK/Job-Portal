@@ -2,6 +2,8 @@ package com.aryan.jobportal.auth.services.impl;
 
 import com.aryan.jobportal.auth.dto.request.EmailAuthReq;
 import com.aryan.jobportal.auth.dto.request.OtpReq;
+import com.aryan.jobportal.auth.dto.request.UpdateAppUserReq;
+import com.aryan.jobportal.auth.dto.response.AppUserResp;
 import com.aryan.jobportal.auth.dto.response.AuthResp;
 import com.aryan.jobportal.auth.entities.AppUser;
 import com.aryan.jobportal.auth.repositories.AppUserRepository;
@@ -9,13 +11,16 @@ import com.aryan.jobportal.auth.security.JwtService;
 import com.aryan.jobportal.auth.services.AppUserService;
 import com.aryan.jobportal.common.dto.MailReq;
 import com.aryan.jobportal.common.enums.AppUserRole;
+import com.aryan.jobportal.common.exceptions.UnauthorizedException;
 import com.aryan.jobportal.common.services.MailService;
 import com.aryan.jobportal.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.modelmapper.ModelMapper;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -36,6 +41,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
     private final JwtService jwtService;
     private final MailService mailService;
     private final CacheManager cacheManager;
+    private final ModelMapper modelMapper;
     private final String CACHE_NAME = "auth";
 
     @Override
@@ -57,15 +63,12 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
     @Override
     public AuthResp authenticateViaEmail(EmailAuthReq emailAuthReq) {
-        if (AppUserRole.ADMIN.equals(emailAuthReq.getRole()))
-            throw new IllegalArgumentException("Invalid role");
-
         Cache cache = cacheManager.getCache(CACHE_NAME);
         assert cache != null;
 
         String storedOtp = cache.get(emailAuthReq.getEmail(), String.class);
         if (storedOtp == null) {
-            throw new RuntimeException("OTP expired or not found");
+            throw new RuntimeException("Invalid OTP");
         }
         if (!storedOtp.equals(emailAuthReq.getOtp())) {
             throw new RuntimeException("Invalid OTP");
@@ -79,7 +82,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
                             .name(null)
                             .email(emailAuthReq.getEmail())
                             .profilePhoto(null)
-                            .role(emailAuthReq.getRole())
+                            .role(AppUserRole.USER)
                             .isEmailVerified(true)
                             .build();
 
@@ -103,7 +106,6 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
                     return appUserRepository.save(newUser);
                 });
-
         return issueTokens(user);
     }
 
@@ -127,7 +129,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
     private AuthResp issueTokens(AppUser user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
-        return new AuthResp(accessToken, refreshToken);
+        return new AuthResp(user.getId(), accessToken, refreshToken);
     }
 
     public AppUser getUserById(UUID userId) {
@@ -149,7 +151,32 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
         String accessToken = jwtService.generateAccessToken(appUser);
         String refreshedToken = jwtService.generateRefreshToken(appUser);
         log.info("access token: {}, refresh token: {}", accessToken, refreshedToken);
-        return new AuthResp(accessToken, refreshedToken);
+        return new AuthResp(appUser.getId(), accessToken, refreshedToken);
+    }
+
+    @Override
+    public AppUserResp getMe() {
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return modelMapper.map(appUser, AppUserResp.class);
+    }
+
+    @Override
+    public void updateAppUser(UpdateAppUserReq updateAppUserReq) {
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        AppUser user = appUserRepository.findById(appUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")) ;
+
+        if (updateAppUserReq.getName() != null) user.setName(updateAppUserReq.getName());
+        if (updateAppUserReq.getProfilePhoto() != null) user.setProfilePhoto(updateAppUserReq.getProfilePhoto());
+        if (updateAppUserReq.isEmailVerified()) user.setEmailVerified(true);
+        if (updateAppUserReq.isContactNumberVerified()) user.setContactNumberVerified(true);
+        if (updateAppUserReq.getRole() != null ) {
+            if (AppUserRole.EMPLOYER.equals(updateAppUserReq.getRole()) || AppUserRole.JOBSEEKER.equals(updateAppUserReq.getRole())) {
+                throw new UnauthorizedException("Role cannot be modified");
+            }
+            user.setRole(updateAppUserReq.getRole());
+        }
+        appUserRepository.save(user);
     }
 
     @Override

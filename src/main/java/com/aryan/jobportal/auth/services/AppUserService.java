@@ -2,6 +2,8 @@ package com.aryan.jobportal.auth.services;
 
 import com.aryan.jobportal.auth.dto.request.EmailAuthReq;
 import com.aryan.jobportal.auth.dto.request.OtpReq;
+import com.aryan.jobportal.auth.dto.request.UpdateAppUserReq;
+import com.aryan.jobportal.auth.dto.response.AppUserResp;
 import com.aryan.jobportal.auth.dto.response.AuthResp;
 import com.aryan.jobportal.auth.entities.AppUser;
 import com.aryan.jobportal.common.enums.AppUserRole;
@@ -22,4 +24,8 @@ public interface AppUserService {
     AppUser findUserByEmail(String email);
 
     AuthResp refreshToken(String refreshToken);
+
+    AppUserResp getMe();
+
+    void updateAppUser(UpdateAppUserReq updateAppUserReq);
 }

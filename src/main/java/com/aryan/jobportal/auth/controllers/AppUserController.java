@@ -3,6 +3,8 @@ package com.aryan.jobportal.auth.controllers;
 import com.aryan.jobportal.auth.dto.request.EmailAuthReq;
 import com.aryan.jobportal.auth.dto.request.GoogleAuthReq;
 import com.aryan.jobportal.auth.dto.request.OtpReq;
+import com.aryan.jobportal.auth.dto.request.UpdateAppUserReq;
+import com.aryan.jobportal.auth.dto.response.AppUserResp;
 import com.aryan.jobportal.auth.dto.response.AuthResp;
 import com.aryan.jobportal.auth.services.AppUserService;
 import com.aryan.jobportal.common.enums.AppUserRole;
@@ -37,7 +39,8 @@ public class AppUserController {
     }
 
     @PostMapping("/email")
-    public ResponseEntity<AuthResp> authenticateViaEmail(@Valid @RequestBody EmailAuthReq emailAuthReq, HttpServletResponse response) {
+    public ResponseEntity<AuthResp> authenticateViaEmail(@Valid @RequestBody EmailAuthReq emailAuthReq,
+                                                         HttpServletResponse response) {
         AuthResp authResp = appUserService.authenticateViaEmail(emailAuthReq);
         addRefreshTokenCookie(response, authResp.getRefreshToken());
         return ResponseEntity.status(HttpStatus.CREATED).body(authResp);
@@ -64,6 +67,19 @@ public class AppUserController {
         AuthResp authResp = appUserService.refreshToken(refreshToken);
         addRefreshTokenCookie(response, authResp.getRefreshToken());
         return ResponseEntity.status(HttpStatus.OK).body(authResp);
+    }
+
+    @GetMapping("/me")
+    private ResponseEntity<AppUserResp> me(HttpServletRequest request) {
+        AppUserResp appUser = appUserService.getMe();
+        return ResponseEntity.ok(appUser);
+    }
+
+    @PatchMapping("/me")
+    private ResponseEntity<Void> updateMe(@RequestBody UpdateAppUserReq updateAppUserReq,
+                                          HttpServletRequest request) {
+        appUserService.updateAppUser(updateAppUserReq);
+        return ResponseEntity.noContent().build();
     }
 
     private void addRefreshTokenCookie(HttpServletResponse response, String refreshToken) {

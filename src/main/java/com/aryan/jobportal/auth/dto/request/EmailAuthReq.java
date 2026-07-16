@@ -12,7 +12,4 @@ public class EmailAuthReq {
     private String email;
 
     private String otp;
-
-    @NotNull(message = "Invalid role")
-    private AppUserRole role;
 }

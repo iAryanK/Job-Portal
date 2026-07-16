@@ -130,7 +130,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\",\n  \"role\": \"{{role}}\"\n}"
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/core/email",
@@ -189,6 +189,49 @@
 							"path": ["auth", "core", "refresh"]
 						},
 						"description": "Refreshes access token using the `refreshToken` HttpOnly cookie from a prior login. Cookie is managed automatically by Postman if cookies are enabled."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "App User",
+			"description": "Authenticated app-user profile endpoints. Requires `Authorization: Bearer {{accessToken}}`.",
+			"item": [
+				{
+					"name": "Get Me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/core/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "core", "me"]
+						},
+						"description": "Returns the authenticated app user's profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Me",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Jane Doe\",\n  \"emailVerified\": true,\n  \"contactNumberVerified\": false,\n  \"profilePhoto\": \"https://example.com/photo.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/core/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "core", "me"]
+						},
+						"description": "Updates the authenticated app user's profile. Send only fields to update.\n\n`role` values: `JOBSEEKER` | `EMPLOYER` | `USER`\n\nOnly `JOBSEEKER` and `EMPLOYER` roles can be assigned via this endpoint.\n\nReturns 204 No Content."
 					},
 					"response": []
 				}

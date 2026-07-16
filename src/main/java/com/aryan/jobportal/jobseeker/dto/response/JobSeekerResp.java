@@ -1,5 +1,6 @@
 package com.aryan.jobportal.jobseeker.dto.response;
 
+import com.aryan.jobportal.common.enums.Gender;
 import com.aryan.jobportal.common.enums.VerificationStatus;
 import jakarta.persistence.Column;
 import lombok.Data;
@@ -16,7 +17,7 @@ public class JobSeekerResp {
 
     private Instant dateOfBirth;
 
-    private String gender;
+    private Gender gender;
 
     private String headline;
 

@@ -76,5 +76,5 @@ public class Employer extends Base {
     private Boolean verified = false;
 
     @Enumerated(EnumType.STRING)
-    private VerificationStatus verificationStatus;
+    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
 }

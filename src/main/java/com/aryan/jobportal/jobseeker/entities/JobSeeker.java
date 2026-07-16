@@ -2,6 +2,7 @@ package com.aryan.jobportal.jobseeker.entities;
 
 import com.aryan.jobportal.auth.entities.AppUser;
 import com.aryan.jobportal.common.entities.Base;
+import com.aryan.jobportal.common.enums.Gender;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +32,8 @@ public class JobSeeker extends Base {
 
     private Instant dateOfBirth;
 
-    private String gender;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     private String headline;
 

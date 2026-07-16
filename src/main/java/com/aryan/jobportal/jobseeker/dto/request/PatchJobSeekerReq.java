@@ -1,5 +1,6 @@
 package com.aryan.jobportal.jobseeker.dto.request;
 
+import com.aryan.jobportal.common.enums.Gender;
 import lombok.Data;
 
 import java.time.Instant;
@@ -11,7 +12,7 @@ public class PatchJobSeekerReq {
 
     private Instant dateOfBirth;
 
-    private String gender;
+    private Gender gender;
 
     private String headline;
 
