@@ -8,7 +8,9 @@ import com.aryan.jobportal.jobs.dto.request.InvitationReq;
 import com.aryan.jobportal.jobs.dto.request.UpdateInvitationReq;
 import com.aryan.jobportal.jobs.dto.response.InvitationResp;
 import com.aryan.jobportal.jobs.entities.Invitation;
+import com.aryan.jobportal.jobs.entities.Job;
 import com.aryan.jobportal.jobs.repositories.InvitationRepository;
+import com.aryan.jobportal.jobs.repositories.JobRepository;
 import com.aryan.jobportal.jobs.services.InvitationService;
 import com.aryan.jobportal.jobseeker.entities.JobSeeker;
 import com.aryan.jobportal.jobseeker.repositories.JobSeekerRepository;
@@ -16,6 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +32,7 @@ import java.util.UUID;
 public class InvitationServiceImpl implements InvitationService {
 
     private final InvitationRepository invitationRepository;
+    private final JobRepository jobRepository;
     private final JobSeekerRepository jobSeekerRepository;
     private final ModelMapper modelMapper;
 
@@ -41,6 +45,20 @@ public class InvitationServiceImpl implements InvitationService {
         Invitation invitation = modelMapper.map(invitationReq, Invitation.class);
         invitation = invitationRepository.save(invitation);
         return modelMapper.map(invitation, InvitationResp.class);
+    }
+
+    @Override
+    public List<InvitationResp> getInvitationsOfJob(UUID jobId) {
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+        if (!job.getEmployer().getAppUser().getId().equals(appUser.getId()))
+            throw new AccessDeniedException("You are not authorized to view invitations");
+
+        List<Invitation> invitations = invitationRepository.findByJob_Id(jobId);
+        return invitations.stream()
+                .map(invitation -> modelMapper.map(invitation, InvitationResp.class))
+                .toList();
     }
 
     @Override

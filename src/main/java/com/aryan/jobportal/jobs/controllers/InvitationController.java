@@ -25,6 +25,12 @@ public class InvitationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(invitationResp);
     }
 
+    @GetMapping("/{jobId}")
+    public ResponseEntity<List<InvitationResp>> getInvitationsOfJob(@PathVariable UUID jobId) {
+        List<InvitationResp> invitations = invitationService.getInvitationsOfJob(jobId);
+        return ResponseEntity.ok(invitations);
+    }
+
     @GetMapping
     public ResponseEntity<List<InvitationResp>> getInvitationsOfJobSeeker() {
         List<InvitationResp> invitations = invitationService.getInvitationsOfJobSeeker();

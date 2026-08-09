@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
     List<Invitation> findByJobSeeker_Id(UUID id);
+
+    List<Invitation> findByJob_Id(UUID jobId);
 }

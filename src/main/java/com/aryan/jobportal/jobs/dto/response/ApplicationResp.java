@@ -15,4 +15,8 @@ public class ApplicationResp {
     private String message;
 
     private ApplicationStatus status;
+
+    private Job job;
+
+    private JobSeeker jobSeeker;
 }

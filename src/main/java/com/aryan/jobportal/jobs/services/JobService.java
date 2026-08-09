@@ -1,11 +1,13 @@
 package com.aryan.jobportal.jobs.services;
 
 import com.aryan.jobportal.jobs.dto.request.CreateJobReq;
+import com.aryan.jobportal.jobs.dto.request.FindJobsFilterReq;
 import com.aryan.jobportal.jobs.dto.request.PatchJobReq;
 import com.aryan.jobportal.jobs.dto.response.JobResp;
 import com.aryan.jobportal.jobs.dto.response.JobSummaryResp;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface JobService {
@@ -16,5 +18,5 @@ public interface JobService {
 
     JobResp getJobById(UUID id);
 
-    List<JobSummaryResp> findJobs();
+    Page<JobSummaryResp> findJobs(FindJobsFilterReq filter, Pageable pageable);
 }

@@ -70,13 +70,13 @@ public class AppUserController {
     }
 
     @GetMapping("/me")
-    private ResponseEntity<AppUserResp> me(HttpServletRequest request) {
+    public ResponseEntity<AppUserResp> me(HttpServletRequest request) {
         AppUserResp appUser = appUserService.getMe();
         return ResponseEntity.ok(appUser);
     }
 
     @PatchMapping("/me")
-    private ResponseEntity<Void> updateMe(@RequestBody UpdateAppUserReq updateAppUserReq,
+    public ResponseEntity<Void> updateMe(@RequestBody UpdateAppUserReq updateAppUserReq,
                                           HttpServletRequest request) {
         appUserService.updateAppUser(updateAppUserReq);
         return ResponseEntity.noContent().build();

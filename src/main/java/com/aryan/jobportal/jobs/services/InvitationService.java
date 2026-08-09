@@ -10,6 +10,8 @@ import java.util.UUID;
 public interface InvitationService {
     InvitationResp inviteJobSeeker(InvitationReq invitationReq);
 
+    List<InvitationResp> getInvitationsOfJob(UUID jobId);
+
     List<InvitationResp> getInvitationsOfJobSeeker();
 
     void updateInviteStatus(UUID id, UpdateInvitationReq updateInvitationReq);

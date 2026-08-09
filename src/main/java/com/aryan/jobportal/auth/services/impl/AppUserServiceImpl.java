@@ -170,8 +170,12 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
         if (updateAppUserReq.getProfilePhoto() != null) user.setProfilePhoto(updateAppUserReq.getProfilePhoto());
         if (updateAppUserReq.isEmailVerified()) user.setEmailVerified(true);
         if (updateAppUserReq.isContactNumberVerified()) user.setContactNumberVerified(true);
-        if (updateAppUserReq.getRole() != null ) {
-            if (AppUserRole.EMPLOYER.equals(updateAppUserReq.getRole()) || AppUserRole.JOBSEEKER.equals(updateAppUserReq.getRole())) {
+        if (updateAppUserReq.getRole() != null) {
+            if (!AppUserRole.EMPLOYER.equals(updateAppUserReq.getRole())
+                            && !AppUserRole.JOBSEEKER.equals(updateAppUserReq.getRole())) {
+                    throw new UnauthorizedException("Role cannot be modified");
+            }
+            if (!AppUserRole.USER.equals(user.getRole())) {
                 throw new UnauthorizedException("Role cannot be modified");
             }
             user.setRole(updateAppUserReq.getRole());

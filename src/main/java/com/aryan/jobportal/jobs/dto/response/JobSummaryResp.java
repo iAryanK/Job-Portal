@@ -1,11 +1,12 @@
 package com.aryan.jobportal.jobs.dto.response;
 
 import com.aryan.jobportal.common.enums.*;
-import com.aryan.jobportal.employer.entities.Employer;
+import lombok.Data;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Data
 public class JobSummaryResp {
 
     private UUID id;
@@ -14,7 +15,7 @@ public class JobSummaryResp {
 
     private String requirements;
 
-    private Employer employer;
+    private EmployerSummary employer;
 
     private EmploymentType employmentType;
 
