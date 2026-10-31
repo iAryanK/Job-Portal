@@ -2,6 +2,7 @@ package com.aryan.jobportal.jobs.services.impl;
 
 import com.aryan.jobportal.auth.entities.AppUser;
 import com.aryan.jobportal.common.enums.AppUserRole;
+import com.aryan.jobportal.common.enums.InvitationStatus;
 import com.aryan.jobportal.common.exceptions.ResourceNotFoundException;
 import com.aryan.jobportal.common.exceptions.UnauthorizedException;
 import com.aryan.jobportal.jobs.dto.request.InvitationReq;
@@ -14,6 +15,7 @@ import com.aryan.jobportal.jobs.repositories.JobRepository;
 import com.aryan.jobportal.jobs.services.InvitationService;
 import com.aryan.jobportal.jobseeker.entities.JobSeeker;
 import com.aryan.jobportal.jobseeker.repositories.JobSeekerRepository;
+import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -41,6 +44,23 @@ public class InvitationServiceImpl implements InvitationService {
         AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!invitationReq.getJob().getEmployer().getId().equals(appUser.getId()))
             throw new UnauthorizedException("You are not allowed to invite users for this job");
+
+        UUID jobId = invitationReq.getJob().getId();
+        UUID jobSeekerId = invitationReq.getJobSeeker().getId();
+        Optional<Invitation> existingInvitation =
+                invitationRepository.findByJob_IdAndJobSeeker_Id(jobId, jobSeekerId);
+
+        if (existingInvitation.isPresent()) {
+            Invitation invitation = existingInvitation.get();
+            if (invitation.getExpiresAt().isAfter(Instant.now()))
+                throw new DuplicateRequestException("Already invited this candidate for this job");
+
+            invitation.setStatus(InvitationStatus.PENDING);
+            invitation.setExpiresAt(invitationReq.getExpiresAt());
+            invitation.setRespondedAt(null);
+            invitation = invitationRepository.save(invitation);
+            return modelMapper.map(invitation, InvitationResp.class);
+        }
 
         Invitation invitation = modelMapper.map(invitationReq, Invitation.class);
         invitation = invitationRepository.save(invitation);
