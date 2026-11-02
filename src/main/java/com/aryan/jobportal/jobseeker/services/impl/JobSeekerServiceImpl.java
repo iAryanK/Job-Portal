@@ -13,7 +13,7 @@ import com.aryan.jobportal.jobseeker.mapper.UpdateJobSeekerMapper;
 import com.aryan.jobportal.jobseeker.repositories.JobSeekerRepository;
 import com.aryan.jobportal.jobseeker.services.JobSeekerService;
 import com.aryan.jobportal.jobseeker.specifications.JobSeekerSpecifications;
-import com.sun.jdi.request.DuplicateRequestException;
+import com.aryan.jobportal.common.exceptions.DuplicateRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

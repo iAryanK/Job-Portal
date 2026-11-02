@@ -15,7 +15,7 @@ import com.aryan.jobportal.jobs.repositories.JobRepository;
 import com.aryan.jobportal.jobs.services.InvitationService;
 import com.aryan.jobportal.jobseeker.entities.JobSeeker;
 import com.aryan.jobportal.jobseeker.repositories.JobSeekerRepository;
-import com.sun.jdi.request.DuplicateRequestException;
+import com.aryan.jobportal.common.exceptions.DuplicateRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

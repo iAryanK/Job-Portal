@@ -1,20 +1,19 @@
 package com.aryan.jobportal.common.advices;
 
+import com.aryan.jobportal.common.exceptions.BadRequestException;
+import com.aryan.jobportal.common.exceptions.DuplicateRequestException;
 import com.aryan.jobportal.common.exceptions.ResourceNotFoundException;
 import com.aryan.jobportal.common.exceptions.UnauthorizedException;
-import com.sun.jdi.request.DuplicateRequestException;
 import io.jsonwebtoken.JwtException;
-import org.apache.coyote.BadRequestException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import org.springframework.security.core.AuthenticationException;
-
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestControllerAdvice
@@ -53,6 +52,17 @@ public class GlobalExceptionHandler {
         return buildErrorResponseEntity(apiError);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadRequestException(BadRequestException exception) {
+        ApiError apiError = ApiError
+                .builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message(exception.getMessage())
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleInputValidationException(MethodArgumentNotValidException exception) {
         List<String> errors = exception
@@ -67,17 +77,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .message("Input validation failed")
                 .subErrors(errors)
-                .build();
-
-        return buildErrorResponseEntity(apiError);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleInternalServerError(Exception exception) {
-        ApiError apiError = ApiError
-                .builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .message(exception.getMessage())
                 .build();
 
         return buildErrorResponseEntity(apiError);
@@ -117,11 +116,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DuplicateRequestException.class)
-    public ResponseEntity<ApiResponse<?>> handleAccessDeniedException(DuplicateRequestException exception) {
+    public ResponseEntity<ApiResponse<?>> handleDuplicateRequestException(DuplicateRequestException exception) {
         ApiError apiError = ApiError
                 .builder()
                 .status(HttpStatus.CONFLICT)
                 .message(exception.getLocalizedMessage())
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> handleInternalServerError(Exception exception) {
+        ApiError apiError = ApiError
+                .builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .message(exception.getMessage())
                 .build();
 
         return buildErrorResponseEntity(apiError);
