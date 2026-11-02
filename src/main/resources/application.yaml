@@ -28,6 +28,11 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET: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}
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -44,8 +49,14 @@ spring:
           writetimeout: 5000
 
 server:
+  port: ${SERVER_PORT:8080}
   servlet:
     context-path: /api/v1
+
+management:
+  health:
+    mail:
+      enabled: false
 
 jwt:
   secretKey: ${JWT_SECRET_KEY:LLe+pqsPF7bxw2EHRl7cnDLwOiOpCORVeUHBHdvJ6t4=}

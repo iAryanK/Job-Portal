@@ -1,0 +1,17 @@
+.git
+.idea
+.vscode
+target
+postman
+HELP.md
+*.md
+.env
+.env.*
+!.env.example
+Dockerfile
+docker-compose*.yml
+.gitignore
+.gitattributes
+mvnw.cmd
+**/.DS_Store
+**/Thumbs.db

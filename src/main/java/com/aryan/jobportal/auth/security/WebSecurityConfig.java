@@ -33,7 +33,8 @@ public class WebSecurityConfig {
                                 "/login/oauth2/**",
                                 "/error/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
