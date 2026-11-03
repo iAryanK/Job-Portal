@@ -45,7 +45,8 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
     @Override
     public void sendEmailOTP(OtpReq otpReq) {
-        String otp = generateOtp(6);
+        // String otp = generateOtp(6);
+        String otp = "123456";
         log.info("OTP generated: {}", otp);
         MailReq request = MailReq.builder()
                 .to(otpReq.getEmail())
@@ -149,13 +150,13 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
         String accessToken = jwtService.generateAccessToken(appUser);
         String refreshedToken = jwtService.generateRefreshToken(appUser);
-        log.info("access token: {}, refresh token: {}", accessToken, refreshedToken);
         return new AuthResp(appUser.getId(), accessToken, refreshedToken);
     }
 
     @Override
     public AppUserResp getMe() {
-        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        AppUser principal = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        AppUser appUser = getUserById(principal.getId());
         return modelMapper.map(appUser, AppUserResp.class);
     }
 

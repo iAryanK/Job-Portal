@@ -1,6 +1,7 @@
 package com.aryan.jobportal.auth.security;
 
 import com.aryan.jobportal.auth.entities.AppUser;
+import com.aryan.jobportal.common.enums.AppUserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -27,7 +27,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
-                .claim("role", user.getRole())
+                .claim("role", user.getRole().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis()+1000*60*15))
                 .signWith(getSecretKey())
@@ -44,13 +44,27 @@ public class JwtService {
     }
 
     public UUID getUserIdFromToken(String token) {
-        // this may lead to exception if our token is already expired
-        Claims claims = Jwts.parser()
+        return UUID.fromString(parseClaims(token).getSubject());
+    }
+
+    /**
+     * Builds a lightweight principal from access-token claims so authenticated
+     * requests do not hit the database on every call.
+     */
+    public AppUser getUserFromAccessToken(String token) {
+        Claims claims = parseClaims(token);
+        return AppUser.builder()
+                .id(UUID.fromString(claims.getSubject()))
+                .email(claims.get("email", String.class))
+                .role(AppUserRole.valueOf(claims.get("role", String.class)))
+                .build();
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
                 .verifyWith(getSecretKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        return UUID.fromString(claims.getSubject());
     }
 }

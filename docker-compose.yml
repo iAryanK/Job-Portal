@@ -47,6 +47,7 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SERVER_PORT: 8080
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=40.0 -XX:+UseContainerSupport}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-LLe+pqsPF7bxw2EHRl7cnDLwOiOpCORVeUHBHdvJ6t4=}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-889244422854-fm71go8avd9krvl7l0fcusas2tamer9q.apps.googleusercontent.com}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-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}

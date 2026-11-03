@@ -92,7 +92,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public JobResp getJobById(UUID id) {
-        Job job = jobRepository.findById(id)
+        Job job = jobRepository.findWithEmployerById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
         return modelMapper.map(job, JobResp.class);
     }
@@ -109,8 +109,9 @@ public class JobServiceImpl implements JobService {
     }
 
     private Pageable sanitizePageable(Pageable pageable) {
-        int page = pageable != null ? pageable.getPageNumber() : 0;
+        int page = pageable != null ? Math.max(pageable.getPageNumber(), 0) : 0;
         int size = pageable != null ? pageable.getPageSize() : 20;
+        size = Math.min(Math.max(size, 1), 50);
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         if (pageable != null && pageable.getSort().isSorted()) {

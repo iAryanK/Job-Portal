@@ -1,7 +1,6 @@
 package com.aryan.jobportal.auth.security;
 
 import com.aryan.jobportal.auth.entities.AppUser;
-import com.aryan.jobportal.auth.services.AppUserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,14 +14,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final AppUserService appUserService;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
@@ -37,13 +34,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String token = requestTokenHeader.split(" ")[1];
 
-            UUID userId = jwtService.getUserIdFromToken(token);
-
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                AppUser appUser = appUserService.getUserById(userId);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                AppUser appUser = jwtService.getUserFromAccessToken(token);
                 UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(appUser, null, null);
-                // may be used for IP check or rate limiting purpose
+                        new UsernamePasswordAuthenticationToken(appUser, null, appUser.getAuthorities());
                 authenticationToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );

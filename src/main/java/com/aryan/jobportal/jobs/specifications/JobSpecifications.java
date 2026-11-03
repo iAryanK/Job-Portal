@@ -20,6 +20,7 @@ public final class JobSpecifications {
 
     public static Specification<Job> withFilter(FindJobsFilterReq filter) {
         List<Specification<Job>> specifications = new ArrayList<>();
+        specifications.add(fetchEmployer());
         boolean isEmployerScoped = filter.getEmployerId() != null;
 
         if (!isEmployerScoped) {
@@ -60,6 +61,20 @@ public final class JobSpecifications {
             combined = combined == null ? specification : combined.and(specification);
         }
         return combined;
+    }
+
+    /**
+     * Eager-fetch employer on result queries to avoid N+1 when mapping summaries.
+     * Skipped for count queries used by pagination.
+     */
+    private static Specification<Job> fetchEmployer() {
+        return (root, query, cb) -> {
+            if (query != null && !Long.class.equals(query.getResultType()) && !long.class.equals(query.getResultType())) {
+                root.fetch("employer", JoinType.LEFT);
+                query.distinct(true);
+            }
+            return cb.conjunction();
+        };
     }
 
     private static Specification<Job> hasPublishedStatus() {

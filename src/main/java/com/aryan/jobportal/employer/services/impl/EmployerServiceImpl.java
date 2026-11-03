@@ -114,8 +114,9 @@ public class EmployerServiceImpl implements EmployerService {
     }
 
     private Pageable sanitizePageable(Pageable pageable) {
-        int page = pageable != null ? pageable.getPageNumber() : 0;
+        int page = pageable != null ? Math.max(pageable.getPageNumber(), 0) : 0;
         int size = pageable != null ? pageable.getPageSize() : 20;
+        size = Math.min(Math.max(size, 1), 50);
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         if (pageable != null && pageable.getSort().isSorted()) {
